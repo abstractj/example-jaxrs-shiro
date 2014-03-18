@@ -31,7 +31,7 @@ import java.util.Set;
 
 @Entity
 @Table(name = "users")
-@NamedQuery(name = "User.findByUsername", query = "select u from User u where u.username = :username")
+@NamedQuery(name = "User.findByUsername", query = "select u from User u where u.loginName = :loginName")
 public class User {
 
     @Id
@@ -39,7 +39,7 @@ public class User {
     private Long id;
 
     @Column(length = 100)
-    private String username;
+    private String loginName;
 
     @Column(length = 255)
     private String password;
@@ -55,8 +55,8 @@ public class User {
     public User() {
     }
 
-    public User(String username, String password) {
-        this.username = username;
+    public User(String loginName, String password) {
+        this.loginName = loginName;
         this.password = password;
     }
 
@@ -68,18 +68,12 @@ public class User {
         this.id = id;
     }
 
-    /**
-     * Returns the username associated with this user account;
-     *
-     * @return the username associated with this user account;
-     */
-
-    public String getUsername() {
-        return username;
+    public String getLoginName() {
+        return loginName;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setLoginName(String loginName) {
+        this.loginName = loginName;
     }
 
     public String getEmail() {
@@ -89,12 +83,6 @@ public class User {
     public void setEmail(String email) {
         this.email = email;
     }
-
-    /**
-     * Returns the password for this user.
-     *
-     * @return this user's password
-     */
 
     public String getPassword() {
         return password;

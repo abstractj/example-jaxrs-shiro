@@ -19,6 +19,7 @@ package org.abstractj.service;
 
 import org.abstractj.auth.AuthenticationManager;
 import org.abstractj.authz.IdentityManagement;
+import org.abstractj.model.User;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
@@ -27,6 +28,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.logging.Logger;
 
 @Stateless
 @Path("/auth")
@@ -41,15 +43,18 @@ public class AuthService {
     private AuthenticationManager authenticationManager;
 
 
+    private static final Logger LOGGER = Logger.getLogger(AuthService.class.getSimpleName());
+
+
     @POST
     @Path("/enroll")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response register(String loginName, String password) {
+    public Response register(User user) {
 
         try {
-            configuration.create(loginName, password);
-            configuration.grant(DEFAULT_ROLE).to(loginName);
-            if (authenticationManager.login(loginName, password)) {
+            configuration.create(user);
+            configuration.grant(DEFAULT_ROLE).to(user.getLoginName());
+            if (authenticationManager.login(user)) {
                 return Response.ok().build();
             }
         } catch (Exception e) {
@@ -62,12 +67,13 @@ public class AuthService {
     @POST
     @Path("/login")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response login(String loginName, String password) {
+    public Response login(User user) {
         try {
-            if (authenticationManager.login(loginName, password)) {
+            if (authenticationManager.login(user)) {
                 return Response.ok().build();
             }
         } catch (Exception e) {
+            e.printStackTrace();
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
         return Response.status(Response.Status.BAD_REQUEST).build();

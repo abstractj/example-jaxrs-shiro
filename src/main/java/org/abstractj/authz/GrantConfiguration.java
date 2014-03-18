@@ -26,7 +26,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @ApplicationScoped
-public class GrantConfiguration {
+public class GrantConfiguration implements IdentityManagement.GrantMethods<User> {
 
     @Inject
     private EntityManager entityManager;
@@ -47,7 +47,7 @@ public class GrantConfiguration {
     public void to(String username) {
 
         User user = entityManager.createNamedQuery("User.findByUsername", User.class)
-                .setParameter("username", username)
+                .setParameter("loginName", username)
                 .getSingleResult();
 
         user.setRoles(list);

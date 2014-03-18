@@ -16,9 +16,11 @@
 
 package org.abstractj.auth;
 
+import org.abstractj.authz.IdentityManagement;
+import org.abstractj.model.User;
+import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.crypto.hash.Sha512Hash;
-import org.apache.shiro.subject.Subject;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
@@ -28,19 +30,20 @@ import java.io.Serializable;
 @ApplicationScoped
 public class AuthenticationManager {
 
-    @Inject
-    private Subject subject;
-
     @Produces
     private Serializable sessionId;
 
-    public boolean login(String username, String password) {
-        UsernamePasswordToken token = new UsernamePasswordToken(username,
-                new Sha512Hash(password).toHex());
+    @Inject
+    private IdentityManagement identityManagement;
 
-        subject.login(token);
-        if (subject.isAuthenticated()) {
-            sessionId = subject.getSession().getId();
+    public boolean login(User user) {
+
+        UsernamePasswordToken token = new UsernamePasswordToken(user.getLoginName(),
+                new Sha512Hash(user.getPassword()).toHex());
+
+        SecurityUtils.getSubject().login(token);
+        if (SecurityUtils.getSubject().isAuthenticated()) {
+            sessionId = SecurityUtils.getSubject().getSession(true).getId();
         } else {
             throw new RuntimeException("Authentication failed");
         }
@@ -49,6 +52,6 @@ public class AuthenticationManager {
     }
 
     public void logout() {
-        subject.logout();
+        SecurityUtils.getSubject().logout();
     }
 }

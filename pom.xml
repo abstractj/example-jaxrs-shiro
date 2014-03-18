@@ -113,6 +113,11 @@
             <version>${apache.shiro.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.apache.shiro</groupId>
+            <artifactId>shiro-web</artifactId>
+            <version>${apache.shiro.version}</version>
+        </dependency>
 
 
     </dependencies>

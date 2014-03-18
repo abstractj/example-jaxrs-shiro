@@ -30,27 +30,33 @@ import org.apache.shiro.crypto.hash.Sha512Hash;
 import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.subject.PrincipalCollection;
 
-import javax.inject.Inject;
+import javax.ejb.Stateless;
+import javax.enterprise.context.spi.CreationalContext;
+import javax.enterprise.inject.spi.Bean;
+import javax.enterprise.inject.spi.BeanManager;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
 
 /**
  * Shiro realm configuration
  */
+@Stateless
 public class SecurityRealm extends AuthorizingRealm {
 
-    @Inject
-    private IdentityManagement identityManagerment;
+    private final IdentityManagement identityManagement;
 
-    public SecurityRealm() {
+    public SecurityRealm(){
         setName("SecurityRealm");
         setCredentialsMatcher(new HashedCredentialsMatcher(Sha512Hash.ALGORITHM_NAME));
+        identityManagement = getIdentityManagement();
     }
 
     @Override
-    protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken authToken) throws AuthenticationException {
+    public AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken authToken) throws AuthenticationException {
 
         UsernamePasswordToken token = (UsernamePasswordToken) authToken;
 
-        User user = (User) identityManagerment.findByUsername(token.getUsername());
+        User user = identityManagement.findByUsername(token.getUsername());
 
         if (user != null) {
             return new SimpleAuthenticationInfo(user.getId(), new Sha512Hash(user.getPassword()), getName());
@@ -61,11 +67,12 @@ public class SecurityRealm extends AuthorizingRealm {
     }
 
     @Override
-    protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals) {
+    public AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals) {
 
         try {
+
             Long userId = (Long) (principals.fromRealm(getName()).iterator().next());
-            User user = (User) identityManagerment.findById(userId);
+            User user = identityManagement.findById(userId);
             if (user != null) {
                 SimpleAuthorizationInfo info = new SimpleAuthorizationInfo();
                 for (Role role : user.getRoles()) {
@@ -79,6 +86,23 @@ public class SecurityRealm extends AuthorizingRealm {
         } catch (RuntimeException e) {
             throw new RuntimeException("Authorization has failed");
         }
+    }
+
+    private IdentityManagement getIdentityManagement(){
+
+        final String JNDI_BEAN_MANAGER = "java:comp/BeanManager";
+        IdentityManagement imgmt = null;
+        try {
+            BeanManager beanManager = InitialContext.doLookup(JNDI_BEAN_MANAGER);
+            Bean identityManagement = (Bean)beanManager.getBeans(IdentityManagement.class).iterator().next();
+            CreationalContext context = beanManager.createCreationalContext(identityManagement);
+            imgmt = (IdentityManagement)beanManager.getReference(identityManagement,
+                    IdentityManagement.class, context);
+        } catch (NamingException e) {
+            e.printStackTrace();
+        }
+
+        return imgmt;
     }
 
 }
