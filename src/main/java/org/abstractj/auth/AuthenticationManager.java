@@ -36,6 +36,11 @@ public class AuthenticationManager {
     @Inject
     private IdentityManagement identityManagement;
 
+    /**
+     * Please, make sure to derive the passsword with Sha512Hash
+     * @see https://shiro.apache.org/static/1.2.2/apidocs/org/apache/shiro/crypto/hash/Sha512Hash.html#Sha512Hash(java.lang.Object,%20java.lang.Object,%20int)
+     * @param user
+     */
     public boolean login(User user) {
 
         UsernamePasswordToken token = new UsernamePasswordToken(user.getLoginName(),
